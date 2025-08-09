@@ -23,6 +23,25 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 });
 
+// Health check endpoint
+Route::get('health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'API is running',
+        'timestamp' => now()
+    ]);
+});
+
+// Test endpoint (no database required)
+Route::get('test', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'Test endpoint working',
+        'app_name' => config('app.name'),
+        'environment' => config('app.env')
+    ]);
+});
+
 // Public kos routes
 Route::get('kos', [KosController::class, 'index']);
 Route::get('kos/{kos}', [KosController::class, 'show']);
