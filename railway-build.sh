@@ -15,9 +15,9 @@ cp railway.env .env
 echo "🔑 Generating application key..."
 php artisan key:generate --force
 
-# Run migrations
+# Run migrations with force flag
 echo "🗄️ Running database migrations..."
-php artisan migrate --force
+php artisan migrate --force --no-interaction
 
 # Create storage link
 echo "📁 Creating storage link..."

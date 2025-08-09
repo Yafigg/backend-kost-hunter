@@ -55,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('profile', [AuthController::class, 'updateProfile']); // CHANGED: PUT -> POST
     });
     
+    // Admin routes (untuk melihat semua users)
+    Route::get('users', [AuthController::class, 'getAllUsers']);
+    
     // Society routes
     Route::middleware('role:society')->group(function () {
         // Bookings

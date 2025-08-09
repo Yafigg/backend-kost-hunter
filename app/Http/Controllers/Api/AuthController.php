@@ -103,6 +103,22 @@ class AuthController extends Controller
     }
 
     /**
+     * Get all users (for admin purposes)
+     */
+    public function getAllUsers(Request $request)
+    {
+        $users = User::select('id', 'name', 'email', 'phone', 'role', 'created_at', 'last_login')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Users retrieved successfully',
+            'data' => $users
+        ]);
+    }
+
+    /**
      * Update user profile
      */
     public function updateProfile(Request $request)
