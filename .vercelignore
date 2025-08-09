@@ -1,0 +1,37 @@
+# Development files
+.env
+.env.local
+.env.backup
+.env.production
+.env.example
+
+# Logs
+storage/logs/*
+!storage/logs/.gitkeep
+
+# Cache
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+
+# Testing
+tests/
+phpunit.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation
+README.md
+DEPLOYMENT.md
+deploy.sh

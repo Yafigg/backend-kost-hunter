@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: gajayana-kost-backend
+    env: php
+    plan: free
+    buildCommand: composer install --no-dev --optimize-autoloader && php artisan key:generate --force && php artisan migrate --force
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://gajayana-kost-backend.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: db.licatwuqqoddjhgjyrvb.supabase.co
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        value: Socrates36
+      - key: DB_SSLMODE
+        value: require
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: error
