@@ -15,7 +15,7 @@ class FavoriteController extends Controller
     public function index(Request $request)
     {
         $favorites = Favorite::where('user_id', $request->user()->id)
-            ->with(['kos:id,name,address,price_per_month,images'])
+            ->with(['kos:id,name,address,price_per_month'])
             ->orderBy('created_at', 'desc')
             ->get();
 
