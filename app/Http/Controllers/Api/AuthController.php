@@ -203,7 +203,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Change user password
+     * Change user password (for logged in users)
      */
     public function changePassword(Request $request)
     {
@@ -230,6 +230,64 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password changed successfully'
+        ]);
+    }
+
+    /**
+     * Check if email exists for forgot password
+     */
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email tidak ditemukan dalam sistem'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email ditemukan, silakan lanjutkan ke step berikutnya',
+            'data' => [
+                'email' => $user->email,
+                'name' => $user->name
+            ]
+        ]);
+    }
+
+    /**
+     * Reset password (for forgot password flow)
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email tidak ditemukan'
+            ], 404);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil direset. Silakan login dengan password baru.'
         ]);
     }
 
