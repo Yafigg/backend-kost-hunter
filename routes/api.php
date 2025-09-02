@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
         Route::post('profile', [AuthController::class, 'updateProfile']); // CHANGED: PUT -> POST
+        Route::post('change-password', [AuthController::class, 'changePassword']);
     });
     
     // Admin routes (untuk melihat semua users)
