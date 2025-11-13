@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: gajayana-kost-backend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - mysql
+    networks:
+      - gajayana-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: gajayana-kost-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: gajayana_kost
+      MYSQL_USER: gajayana
+      MYSQL_PASSWORD: gajayana123
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - gajayana-network
+
+volumes:
+  mysql_data:
+
+networks:
+  gajayana-network:
+    driver: bridge

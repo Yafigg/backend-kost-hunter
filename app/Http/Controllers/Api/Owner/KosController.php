@@ -177,6 +177,30 @@ class KosController extends Controller
     }
 
     /**
+     * Get facilities for a kos
+     */
+    public function getFacilities(Request $request, Kos $kos)
+    {
+        // Check ownership
+        if ($kos->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to view facilities for this kos'
+            ], 403);
+        }
+
+        $facilities = $kos->facilities()->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $facilities
+        ], 200, [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    }
+
+    /**
      * Add facilities to kos
      */
     public function addFacilities(Request $request, Kos $kos)
@@ -204,7 +228,89 @@ class KosController extends Controller
             'success' => true,
             'message' => 'Facilities added successfully',
             'data' => $facilities
-        ], 201);
+        ], 201, [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    }
+
+    /**
+     * Update a facility
+     */
+    public function updateFacility(Request $request, Kos $kos, $facilityId)
+    {
+        // Check ownership
+        if ($kos->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to update facilities for this kos'
+            ], 403);
+        }
+
+        $facility = KosFacility::where('id', $facilityId)
+            ->where('kos_id', $kos->id)
+            ->first();
+
+        if (!$facility) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facility not found'
+            ], 404);
+        }
+
+        $request->validate([
+            'facility' => 'required|string|max:255',
+            'icon' => 'nullable|string|max:50',
+        ]);
+
+        $facility->update([
+            'facility' => $request->facility,
+            'icon' => $request->icon,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Facility updated successfully',
+            'data' => $facility
+        ], 200, [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    }
+
+    /**
+     * Delete a facility
+     */
+    public function deleteFacility(Request $request, Kos $kos, $facilityId)
+    {
+        // Check ownership
+        if ($kos->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete facilities for this kos'
+            ], 403);
+        }
+
+        $facility = KosFacility::where('id', $facilityId)
+            ->where('kos_id', $kos->id)
+            ->first();
+
+        if (!$facility) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Facility not found'
+            ], 404);
+        }
+
+        $facility->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Facility deleted successfully'
+        ], 200, [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
     }
 
     /**
@@ -281,6 +387,102 @@ class KosController extends Controller
             'message' => 'Payment methods added successfully',
             'data' => $paymentMethods
         ], 201);
+    }
+
+    /**
+     * Get all reviews for owner's kos
+     */
+    public function getReviews(Request $request)
+    {
+        try {
+            $owner = $request->user();
+            
+            if (!$owner) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+
+            // Get all kos owned by this owner
+            $kosIds = Kos::where('user_id', $owner->id)->pluck('id');
+
+            if ($kosIds->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+
+            // Get all reviews for owner's kos
+            $reviews = DB::table('reviews')
+                ->join('kos', 'reviews.kos_id', '=', 'kos.id')
+                ->join('users', 'reviews.user_id', '=', 'users.id')
+                ->leftJoin('review_replies', 'reviews.id', '=', 'review_replies.review_id')
+                ->whereIn('reviews.kos_id', $kosIds)
+                ->select(
+                    'reviews.id',
+                    'reviews.kos_id',
+                    'reviews.user_id',
+                    'reviews.comment',
+                    'reviews.rating',
+                    'reviews.created_at',
+                    'reviews.updated_at',
+                    'kos.name as kos_name',
+                    'kos.address as kos_address',
+                    'users.name as user_name',
+                    'users.email as user_email',
+                    'users.avatar as user_avatar',
+                    'review_replies.owner_reply',
+                    'review_replies.created_at as reply_created_at',
+                    'review_replies.updated_at as reply_updated_at'
+                )
+                ->orderBy('reviews.created_at', 'desc')
+                ->get();
+
+            // Transform to array format
+            $reviewsArray = $reviews->map(function ($review) {
+                return [
+                    'id' => $review->id,
+                    'kos_id' => $review->kos_id,
+                    'user_id' => $review->user_id,
+                    'comment' => $review->comment,
+                    'rating' => $review->rating,
+                    'created_at' => $review->created_at,
+                    'updated_at' => $review->updated_at,
+                    'kos' => [
+                        'id' => $review->kos_id,
+                        'name' => $review->kos_name,
+                        'address' => $review->kos_address,
+                    ],
+                    'user' => [
+                        'id' => $review->user_id,
+                        'name' => $review->user_name,
+                        'email' => $review->user_email,
+                        'avatar' => $review->user_avatar,
+                    ],
+                    'reply' => $review->owner_reply ? [
+                        'owner_reply' => $review->owner_reply,
+                        'created_at' => $review->reply_created_at,
+                        'updated_at' => $review->reply_updated_at,
+                    ] : null,
+                ];
+            })->values()->toArray();
+
+            return response()->json([
+                'success' => true,
+                'data' => $reviewsArray
+            ], 200, [
+                'Content-Type' => 'application/json',
+                'Access-Control-Allow-Origin' => '*',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('OwnerKosController@getReviews error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching reviews: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

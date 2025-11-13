@@ -90,7 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Kos sub-resources
         Route::post('kos/{kos}/rooms', [OwnerKosController::class, 'addRooms']);
+        Route::get('kos/{kos}/facilities', [OwnerKosController::class, 'getFacilities']);
         Route::post('kos/{kos}/facilities', [OwnerKosController::class, 'addFacilities']);
+        Route::put('kos/{kos}/facilities/{facility}', [OwnerKosController::class, 'updateFacility']);
+        Route::delete('kos/{kos}/facilities/{facility}', [OwnerKosController::class, 'deleteFacility']);
         Route::post('kos/{kos}/images', [OwnerKosController::class, 'uploadImages']);
         Route::post('kos/{kos}/payment-methods', [OwnerKosController::class, 'addPaymentMethods']);
         
@@ -99,10 +102,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('bookings/{booking}', [OwnerBookingController::class, 'show']);
         Route::put('bookings/{booking}/status', [OwnerBookingController::class, 'updateStatus']);
         
-        // Review replies
+        // Review management
+        Route::get('reviews', [OwnerKosController::class, 'getReviews']);
         Route::post('reviews/{review}/reply', [OwnerKosController::class, 'replyToReview']);
         
         // Reports
         Route::get('reports/bookings', [OwnerBookingController::class, 'report']);
+        
+        // Analytics
+        Route::get('analytics', [OwnerBookingController::class, 'analytics']);
     });
 });
