@@ -19,8 +19,15 @@ class KosController extends Controller
             ->where('is_active', true);
 
         // Filter by gender
-        if ($request->has('gender') && $request->gender !== 'all') {
-            $query->byGender($request->gender);
+        if ($request->has('gender')) {
+            if ($request->gender === 'mixed') {
+                // 'mixed' means only show kos with gender = 'all' (campur)
+                $query->where('gender', 'all');
+            } elseif ($request->gender !== 'all') {
+                // 'male' or 'female' - show kos with that gender or 'all'
+                $query->byGender($request->gender);
+            }
+            // If gender is 'all', don't filter (show all kos)
         }
 
         // Search by name or address
@@ -59,6 +66,13 @@ class KosController extends Controller
         }
 
         $kos = $query->paginate($request->get('per_page', 10));
+
+        // Add average rating to each kos
+        $kos->getCollection()->transform(function ($item) {
+            $avgRating = $item->reviews()->avg('rating');
+            $item->average_rating = $avgRating ? round($avgRating, 1) : 0;
+            return $item;
+        });
 
         return response()->json([
             'success' => true,
